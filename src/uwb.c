@@ -226,6 +226,11 @@ static void uwbTask(void* parameters)
   }
 }
 
+void reqRange()
+{
+  timeout = algorithm->onEvent(dwm, eventRangeRequest);
+}
+
 void uwbStart()
 {
   static StaticTask_t uwbStaticTask;

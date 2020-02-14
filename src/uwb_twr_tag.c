@@ -22,7 +22,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* uwb_twr_anchor.c: Uwb two way ranging anchor implementation */
+/* uwb_twr_anchor.c: Uwb two way ranging tag implementation */
 
 #include "uwb.h"
 
@@ -175,34 +175,32 @@ static void rxcallback(dwDevice_t *dev) {
       memcpy(&answer_tx, &report->answerTx, 5);
       memcpy(&final_rx, &report->finalRx, 5);
 
-      printf("%02x%08x ", (unsigned int)poll_tx.high8, (unsigned int)poll_tx.low32);
-      printf("%02x%08x\r\n", (unsigned int)poll_rx.high8, (unsigned int)poll_rx.low32);
-      printf("%02x%08x ", (unsigned int)answer_tx.high8, (unsigned int)answer_tx.low32);
-      printf("%02x%08x\r\n", (unsigned int)answer_rx.high8, (unsigned int)answer_rx.low32);
-      printf("%02x%08x ", (unsigned int)final_tx.high8, (unsigned int)final_tx.low32);
-      printf("%02x%08x\r\n", (unsigned int)final_rx.high8, (unsigned int)final_rx.low32);
+      // printf("%02x%08x ", (unsigned int)poll_tx.high8, (unsigned int)poll_tx.low32);
+      // printf("%02x%08x\r\n", (unsigned int)poll_rx.high8, (unsigned int)poll_rx.low32);
+      // printf("%02x%08x ", (unsigned int)answer_tx.high8, (unsigned int)answer_tx.low32);
+      // printf("%02x%08x\r\n", (unsigned int)answer_rx.high8, (unsigned int)answer_rx.low32);
+      // printf("%02x%08x ", (unsigned int)final_tx.high8, (unsigned int)final_tx.low32);
+      // printf("%02x%08x\r\n", (unsigned int)final_rx.high8, (unsigned int)final_rx.low32);
 
       tround1 = answer_rx.low32 - poll_tx.low32;
       treply1 = answer_tx.low32 - poll_rx.low32;
       tround2 = final_rx.low32 - answer_tx.low32;
       treply2 = final_tx.low32 - answer_rx.low32;
 
-      printf("%08x %08x\r\n", (unsigned int)tround1, (unsigned int)treply2);
-      printf("\\    /   /     \\\r\n");
-      printf("%08x %08x\r\n", (unsigned int)treply1, (unsigned int)tround2);
+      // printf("%08x %08x\r\n", (unsigned int)tround1, (unsigned int)treply2);
+      // printf("\\    /   /     \\\r\n");
+      // printf("%08x %08x\r\n", (unsigned int)treply1, (unsigned int)tround2);
 
       tprop_ctn = ((tround1*tround2) - (treply1*treply2)) / (tround1 + tround2 + treply1 + treply2);
 
-      printf("TProp (ctn): %d\r\n", (unsigned int)tprop_ctn);
+     // printf("TProp (ctn): %d\r\n", (unsigned int)tprop_ctn);
 
       tprop = tprop_ctn/tsfreq;
       distance = C * tprop;
-
-      printf("distance %d: %5dmm\r\n", rxPacket.sourceAddress[0], (unsigned int)(distance*1000));
-
+      printf("anc%d:%5d\n", rxPacket.sourceAddress[0], (unsigned int)(distance*1000));
       dwGetReceiveTimestamp(dev, &arival);
       arival.full -= (ANTENNA_DELAY/2);
-      printf("Total in-air time (ctn): 0x%08x\r\n", (unsigned int)(arival.low32-poll_tx.low32));
+   //   printf("Total in-air time (ctn): 0x%08x\r\n", (unsigned int)(arival.low32-poll_tx.low32));
 
       break;
     }
@@ -211,7 +209,7 @@ static void rxcallback(dwDevice_t *dev) {
 
 void initiateRanging(dwDevice_t *dev)
 {
-  printf ("Interrogating anchor %d\r\n",  config.anchors[curr_anchor]);
+  //printf ("Interrogating anchor %d\r\n",  config.anchors[curr_anchor]);
   base_address[0] =  config.anchors[curr_anchor];
   curr_anchor ++;
   if (curr_anchor > config.anchorListSize) {
@@ -246,11 +244,15 @@ static uint32_t twrTagOnEvent(dwDevice_t *dev, uwbEvent_t event)
       return 10;
       break;
     case eventTimeout:
-      initiateRanging(dev);
+      //initiateRanging(dev);
       return 10;
       break;
     case eventReceiveFailed:
       // Try again ranging in 10ms
+      return 10;
+      break;
+    case eventRangeRequest:
+      initiateRanging(dev);
       return 10;
       break;
     default:
@@ -262,7 +264,7 @@ static uint32_t twrTagOnEvent(dwDevice_t *dev, uwbEvent_t event)
 
 static void twrTagInit(uwbConfig_t * newconfig, dwDevice_t *dev)
 {
-  // Set the LED for anchor mode
+  // Set the LED for tag mode
   ledOn(ledMode);
 
   config = *newconfig;

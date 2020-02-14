@@ -62,6 +62,7 @@ typedef enum uwbEvent_e {
   eventPacketSent,
   eventReceiveTimeout,
   eventReceiveFailed,
+  eventRangeRequest,
 } uwbEvent_t;
 
 // Callback for one uwb algorithm
@@ -77,6 +78,7 @@ typedef struct uwbAlgorithm_s {
 void uwbInit();
 bool uwbTest();
 void uwbStart();
+void reqRange();
 char * uwbStrError();
 struct uwbConfig_s * uwbGetConfig();
 int uwbAlgorithmCount();

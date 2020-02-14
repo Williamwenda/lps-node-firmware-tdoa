@@ -58,6 +58,7 @@ const uint8_t *uid = (uint8_t*)MCU_ID_ADDRESS;
 static void restConfig();
 static void changeAddress(uint8_t addr);
 static void handleSerialInput(char ch);
+static void handleRangeRequest(char ch);
 static void handleButton(void);
 static void changeMode(unsigned int newMode);
 static void changeRadioMode(unsigned int newMode);
@@ -199,7 +200,8 @@ static void main_task(void *pvParameters) {
 #else
     if(usbcommRead(&ch, 1)) {
 #endif
-      handleSerialInput(ch);
+      //handleSerialInput(ch);
+      handleRangeRequest(ch);
     }
   }
 }
@@ -394,6 +396,12 @@ static void handleMenuPower(char ch, MenuState* menuState) {
       menuState->configChanged = false;
       break;
   }
+}
+
+static void handleRangeRequest(char ch)
+{
+  if(ch == 'z')
+    reqRange();
 }
 
 static void handleSerialInput(char ch) {
