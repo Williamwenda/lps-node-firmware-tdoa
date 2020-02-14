@@ -50,6 +50,14 @@ typedef struct uwbConfig_s {
   bool longPreamble;
 } uwbConfig_t;
 
+typedef struct uwbRange_s {
+  uint8_t header;
+  uint8_t stamp;
+  uint8_t src;
+  uint8_t anchor;
+  uint32_t data;
+} uwbRange_t;
+
 #define MODE_ANCHOR 0
 #define MODE_TAG 1
 #define MODE_SNIFFER 2

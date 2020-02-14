@@ -197,11 +197,18 @@ static void rxcallback(dwDevice_t *dev) {
 
       tprop = tprop_ctn/tsfreq;
       distance = C * tprop;
-      printf("anc%d:%5d\n", rxPacket.sourceAddress[0], (unsigned int)(distance*1000));
+      uwbRange_t range;
+      range.src = rxPacket.destAddress;
+      range.stamp = 0x0B;
+      range.header = 0xA8;
+      range.anchor = rxPacket.sourceAddress[0];
+      range.data = (unsigned int)(distance*1000);
+      unsigned char* ptr = (unsigned char*)&range;
+      int bytesWritten = write(1, ptr, sizeof(range));
+      //printf("anc%d:%5d\n", rxPacket.sourceAddress[0], (unsigned int)(distance*1000));
       dwGetReceiveTimestamp(dev, &arival);
       arival.full -= (ANTENNA_DELAY/2);
-   //   printf("Total in-air time (ctn): 0x%08x\r\n", (unsigned int)(arival.low32-poll_tx.low32));
-
+      // printf("Total in-air time (ctn): 0x%08x\r\n", (unsigned int)(arival.low32-poll_tx.low32));
       break;
     }
   }
