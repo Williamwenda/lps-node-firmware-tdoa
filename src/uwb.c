@@ -39,6 +39,7 @@
 static uwbAlgorithm_t dummyAlgorithm;
 extern uwbAlgorithm_t uwbTwrAnchorAlgorithm;
 extern uwbAlgorithm_t uwbTwrTagAlgorithm;
+extern uwbAlgorithm_t uwbTdoaTagAlgorithm;
 extern uwbAlgorithm_t uwbSnifferAlgorithm;
 extern uwbAlgorithm_t uwbTdoaAlgorithm;
 extern uwbAlgorithm_t uwbTdoa2Algorithm;
@@ -54,6 +55,7 @@ struct {
   {.algorithm = &uwbSnifferAlgorithm,   .name = "Sniffer"},
   {.algorithm = &uwbTdoa2Algorithm,     .name = "TDoA Anchor V2"},
   {.algorithm = &uwbTdoa3Algorithm,     .name = "TDoA Anchor V3"},
+  {.algorithm = &uwbTdoaTagAlgorithm,   .name = "TDoA Tag V2"},
   {NULL, NULL},
 };
 
@@ -109,7 +111,8 @@ void uwbInit()
 
   // Reading and setting node configuration
   cfgReadU8(cfgAddress, &config.address[0]);
-  cfgReadU8(cfgMode, &config.mode);
+  // cfgReadU8(cfgMode, &config.mode);
+  config.mode = MODE_TDOA_TAG;
   cfgFieldSize(cfgAnchorlist, &config.anchorListSize);
   if (config.anchorListSize <= MAX_ANCHORS) {
     cfgReadU8list(cfgAnchorlist, config.anchors, config.anchorListSize);
@@ -178,6 +181,7 @@ void uwbInit()
   dwCommitConfiguration(dwm);
 
   isInit = true;
+  //
 }
 
 bool uwbTest()

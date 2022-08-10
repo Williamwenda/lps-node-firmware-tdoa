@@ -33,7 +33,7 @@
 #include "led.h"
 
 #include "libdw1000.h"
-
+#include "physical_constants.h"
 #include "dwOps.h"
 #include "mac.h"
 
@@ -76,9 +76,6 @@ static dwTime_t answer_tx;
 static dwTime_t answer_rx;
 static dwTime_t final_tx;
 static dwTime_t final_rx;
-
-static const double C = 299792458.0;       // Speed of light
-static const double tsfreq = 499.2e6 * 128;  // Timestamp counter frequency
 
 #define ANTENNA_OFFSET 154.6   // In meter
 #define ANTENNA_DELAY  (ANTENNA_OFFSET*499.2e6*128)/299792458.0 // In radio tick
@@ -195,8 +192,8 @@ static void rxcallback(dwDevice_t *dev) {
 
      // printf("TProp (ctn): %d\r\n", (unsigned int)tprop_ctn);
 
-      tprop = tprop_ctn/tsfreq;
-      distance = C * tprop;
+      tprop = tprop_ctn/TS_FREQ;
+      distance = SPEED_OF_LIGHT * tprop;
       uwbRange_t range;
       range.src = rxPacket.destAddress;
       range.stamp = 0x0B;
@@ -205,7 +202,7 @@ static void rxcallback(dwDevice_t *dev) {
       range.data = (unsigned int)(distance*1000);
       unsigned char* ptr = (unsigned char*)&range;
       int bytesWritten = write(1, ptr, sizeof(range));
-      //printf("anc%d:%5d\n", rxPacket.sourceAddress[0], (unsigned int)(distance*1000));
+      // printf("anc%d:%5d\n", rxPacket.sourceAddress[0], (unsigned int)(distance*1000));
       dwGetReceiveTimestamp(dev, &arival);
       arival.full -= (ANTENNA_DELAY/2);
       // printf("Total in-air time (ctn): 0x%08x\r\n", (unsigned int)(arival.low32-poll_tx.low32));
@@ -216,8 +213,10 @@ static void rxcallback(dwDevice_t *dev) {
 
 void initiateRanging(dwDevice_t *dev)
 {
-  //printf ("Interrogating anchor %d\r\n",  config.anchors[curr_anchor]);
-  base_address[0] =  config.anchors[curr_anchor];
+  // printf ("Interrogating anchor %d\r\n",  req_anchor_id);
+  // TODO: Inser custom anchor id
+  // base_address[0] =  req_anchor_id;
+  base_address[0] = config.anchors[curr_anchor];
   curr_anchor ++;
   if (curr_anchor > config.anchorListSize) {
     curr_anchor = 0;

@@ -96,32 +96,33 @@ static void main_task(void *pvParameters) {
   ledOn(ledMode);
   buttonInit(buttonIdle);
 
-  printf("\r\n\r\n====================\r\n");
+  // printf("\r\n\r\n====================\r\n");
 
-  printf("SYSTEM\t: CPU-ID: ");
-  for (i=0; i<12; i++) {
-    printf("%02x", uid[i]);
-  }
-  printf("\r\n");
+  // printf("SYSTEM\t: CPU-ID: ");
+  // for (i=0; i<12; i++) {
+  //   printf("%02x", uid[i]);
+  // }
+  // printf("\r\n");
 
   // Initializing pressure sensor (if present ...)
-  lps25hInit(&hi2c1);
-  testSupportPrintStart("Initializing pressure sensor");
-  if (lps25hTestConnection()) {
-    printf("[OK]\r\n");
-    lps25hSetEnabled(true);
-  } else {
-    printf("[FAIL] (%u)\r\n", (unsigned int)hi2c1.ErrorCode);
-    selftestPasses = false;
-  }
+  // lps25hInit(&hi2c1);
+  // testSupportPrintStart("Initializing pressure sensor");
+  // if (lps25hTestConnection()) {
+  //   printf("[OK]\r\n");
+  //   lps25hSetEnabled(true);
+  // } else {
+  //   printf("[FAIL] (%u)\r\n", (unsigned int)hi2c1.ErrorCode);
+  //   selftestPasses = false;
+  // }
 
-  testSupportPrintStart("Pressure sensor self-test");
-  testSupportReport(&selftestPasses, lps25hSelfTest());
+  // testSupportPrintStart("Pressure sensor self-test");
+  // testSupportReport(&selftestPasses, lps25hSelfTest());
 
   // Initializing i2c eeprom
   eepromInit(&hi2c1);
   testSupportPrintStart("EEPROM self-test");
   testSupportReport(&selftestPasses, eepromTest());
+
 
   cfgInit();
 
@@ -200,7 +201,7 @@ static void main_task(void *pvParameters) {
 #else
     if(usbcommRead(&ch, 1)) {
 #endif
-      //handleSerialInput(ch);
+      // handleSerialInput(ch);
       handleRangeRequest(ch);
     }
   }
@@ -400,6 +401,8 @@ static void handleMenuPower(char ch, MenuState* menuState) {
 
 static void handleRangeRequest(char ch)
 {
+  // req_anchor_id;
+  // printf("%c\n",ch);
   if(ch == 'z')
     reqRange();
 }
