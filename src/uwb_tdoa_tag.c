@@ -120,7 +120,7 @@ static bool isValidTimeStamp(const int64_t anchorRxTime) {
 
 static bool isSeqNrConsecutive(uint8_t prevSeqNr, uint8_t currentSeqNr) {
   // printf("prev:[%x] curr:[%x].\n", prevSeqNr, currentSeqNr);
-  // printf("prev:[%x] curr:[%x].\n", currentSeqNr, ((prevSeqNr + 1)));
+  // printf("prev:[%x] curr:[%x].\n", currentSeqNr, ((prevSeqNr + 1) & 0xff ));
   return (currentSeqNr == ((prevSeqNr + 1) & 0xff));
 }
 
@@ -163,26 +163,6 @@ static bool calcDistanceDiff(float* tdoaDistDiff, const uint8_t previousAnchor, 
   const bool isAnchorDistanceOk = isValidTimeStamp(tof_Ar_to_An_in_cl_An);
   const bool isRxTimeInTagOk = isValidTimeStamp(rxAr_by_An_in_cl_An);
   const bool isClockCorrectionOk = (clockCorrection != 0.0);
-
-  // if (!isSeqNrInTagOk) {
-  //   printf("Seq tag check fail.\n");
-  // }
-
-  // if (!isSeqNrInAnchorOk) {
-  //   printf("Seq anc check fail.\n");
-  // }
-
-  // if (!isAnchorDistanceOk) {
-  //   printf("anc dist check fail.\n");
-  // }
-
-  // if (!isRxTimeInTagOk) {
-  //   printf("rx time in tag check fail.\n");
-  // }
-
-  // if (!isClockCorrectionOk) {
-  //   printf("clock corr check fail.\n");
-  // }
 
   if (! (isAnchorDistanceOk && isRxTimeInTagOk && isClockCorrectionOk)) {
     return false;
@@ -255,30 +235,30 @@ static uint32_t tdoaTagOnEvent(dwDevice_t *dev, uwbEvent_t event)
       rxcallback(dev);
       // setRadioInReceiveMode(dev);
       // 10ms between rangings
-      return 10;
+      return 1;
       break;
     case eventPacketSent:
       // txcallback(dev);
-      return 10;
+      return 1;
       break;
     case eventTimeout:
       setRadioInReceiveMode(dev);
       //initiateRanging(dev);
-      return 10;
+      return 1;
       break;
     case eventReceiveFailed:
-      // Try again ranging in 10ms
-      return 10;
+      // Try again ranging in 1ms
+      return 1;
       break;
     case eventRangeRequest:
       // initiateRanging(dev);
-      return 10;
+      return 1;
       break;
     default:
       configASSERT(false);
   }
 
-  return MAX_TIMEOUT;
+  return 1;
 }
 
 static void tdoaTagInit(uwbConfig_t * newconfig, dwDevice_t *dev)

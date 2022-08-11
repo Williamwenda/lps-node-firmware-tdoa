@@ -213,12 +213,10 @@ static void rxcallback(dwDevice_t *dev) {
 
 void initiateRanging(dwDevice_t *dev)
 {
-  // printf ("Interrogating anchor %d\r\n",  req_anchor_id);
-  // TODO: Inser custom anchor id
-  // base_address[0] =  req_anchor_id;
+  printf ("Interrogating anchor %d\r\n",  config.anchors[curr_anchor]);
   base_address[0] = config.anchors[curr_anchor];
-  curr_anchor ++;
-  if (curr_anchor > config.anchorListSize) {
+  curr_anchor++;
+  if (curr_anchor >= config.anchorListSize) {
     curr_anchor = 0;
   }
   dwIdle(dev);
@@ -250,7 +248,7 @@ static uint32_t twrTagOnEvent(dwDevice_t *dev, uwbEvent_t event)
       return 10;
       break;
     case eventTimeout:
-      //initiateRanging(dev);
+      // initiateRanging(dev);
       return 10;
       break;
     case eventReceiveFailed:

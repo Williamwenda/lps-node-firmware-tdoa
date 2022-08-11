@@ -127,7 +127,7 @@ static bool check_content(void) {
 }
 
 static bool write_defaults(void) {
-  uint8_t default_anchor_list[] = {1, 2, 3, 4, 5, 6};
+  uint8_t default_anchor_list[] = {0, 1, 2, 3, 4, 5, 6, 7};
 
   buffer[0] = MAGIC;
   buffer[1] = 1; // Major version
@@ -137,7 +137,7 @@ static bool write_defaults(void) {
   buffer[5] = buffer[0] + buffer[1];
   // Write the default address
   cfgWriteU8(cfgAddress, 0);
-  cfgWriteU8(cfgMode, MODE_TDOA_TAG);
+  cfgWriteU8(cfgMode, MODE_ANCHOR);
   cfgWriteU8list(cfgAnchorlist, default_anchor_list, sizeof(default_anchor_list));
   write_crc();
   if (!eepromWrite(0, buffer, 7))

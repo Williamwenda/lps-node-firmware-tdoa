@@ -112,11 +112,17 @@ void uwbInit()
   // Reading and setting node configuration
   cfgReadU8(cfgAddress, &config.address[0]);
   // cfgReadU8(cfgMode, &config.mode);
-  config.mode = MODE_TDOA_TAG;
-  cfgFieldSize(cfgAnchorlist, &config.anchorListSize);
-  if (config.anchorListSize <= MAX_ANCHORS) {
-    cfgReadU8list(cfgAnchorlist, config.anchors, config.anchorListSize);
+  config.mode = MODE_TAG;
+  config.anchorListSize = 8;
+  for(uint8_t i = 0; i < config.anchorListSize; i++)
+  {
+    config.anchors[i] = i;
   }
+  //
+  // cfgFieldSize(cfgAnchorlist, &config.anchorListSize);
+  // if (config.anchorListSize <= MAX_ANCHORS) {
+  //   cfgReadU8list(cfgAnchorlist, config.anchors, config.anchorListSize);
+  // }
 
   if (config.mode < uwbAlgorithmCount()) {
     algorithm = availableAlgorithms[config.mode].algorithm;
