@@ -1,28 +1,6 @@
 /*
- *    ||          ____  _ __
- * +------+      / __ )(_) /_______________ _____  ___
- * | 0xBC |     / __  / / __/ ___/ ___/ __ `/_  / / _ \
- * +------+    / /_/ / / /_/ /__/ /  / /_/ / / /_/  __/
- *  ||  ||    /_____/_/\__/\___/_/   \__,_/ /___/\___/
- *
- * LPS node firmware.
- *
- * Copyright 2016, Bitcraze AB
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Foobar is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* uwb_twr_anchor.c: Uwb two way ranging tag implementation */
+/* uwb_tdoa_tag.c: Uwb time difference of arrival implementation */
 
 #include "uwb.h"
 
@@ -32,10 +10,13 @@
 #include "cfg.h"
 #include "led.h"
 
-#include "tdoa_tag.h"
+#include "uwb_tdoa_tag.h"
 
 #include "libdw1000.h"
-#include "physical_constants.h"
+
+static const double C = 299792458.0;       // Speed of light
+static const double tsfreq = 499.2e6 * 128;  // Timestamp counter frequency
+
 #include "dwOps.h"
 #include "mac.h"
 
@@ -79,7 +60,6 @@ static packet_t txPacket;
 // static uint16_t logAnchorDistance[LOCODECK_NR_OF_TDOA_ANCHORS];
 
 typedef struct tdoaMeasurement_s {
-  point_t anchorPositions[2];
   uint8_t anchorIds[2];
   float distanceDiff;
   float stdDev;
@@ -98,16 +78,16 @@ static uint64_t truncateToAnchorTimeStamp(uint64_t fullTimeStamp) {
   return fullTimeStamp & 0x00FFFFFFFFul;
 }
 
-static void enqueueTDOA(uint8_t anchorA, uint8_t anchorB, double distanceDiff) {
-  // TODO: Send TDOA meas from here
-  // tdoaMeasurement_t tdoa = {
-  //   .stdDev = MEASUREMENT_NOISE_STD,
-  //   .distanceDiff = distanceDiff,
-
-    // .anchorPosition[0] = options->anchorPosition[anchorA],
-    // .anchorPosition[1] = options->anchorPosition[anchorB]
-  // };
-  printf("[%d]<->[%d]:[%f].\n", anchorA, anchorB, distanceDiff);
+static void enqueueTDOA(uint8_t anchorA, uint8_t anchorB, float distanceDiff) {
+  uwbTdoa_t tdoa;
+  tdoa.stamp = 0x0B;
+  tdoa.header = 0xA8;
+  tdoa.anchor_i = anchorA;
+  tdoa.anchor_j = anchorB;
+  memcpy(&(tdoa.data), &distanceDiff, sizeof(distanceDiff));
+  unsigned char* ptr = (unsigned char*)&tdoa;
+  int bytesWritten = write(1, ptr, sizeof(tdoa));
+  // printf("[%d]<->[%d]:[%f].\n", anchorA, anchorB, distanceDiff);
 }
 
 // The default receive time in the anchors for messages from other anchors is 0
@@ -117,10 +97,7 @@ static bool isValidTimeStamp(const int64_t anchorRxTime) {
   return anchorRxTime != 0;
 }
 
-
 static bool isSeqNrConsecutive(uint8_t prevSeqNr, uint8_t currentSeqNr) {
-  // printf("prev:[%x] curr:[%x].\n", prevSeqNr, currentSeqNr);
-  // printf("prev:[%x] curr:[%x].\n", currentSeqNr, ((prevSeqNr + 1) & 0xff ));
   return (currentSeqNr == ((prevSeqNr + 1) & 0xff));
 }
 
@@ -128,7 +105,6 @@ static bool isSeqNrConsecutive(uint8_t prevSeqNr, uint8_t currentSeqNr) {
 // We have three actors: Reference anchor (Ar), Anchor n (An) and the deck on the CF called Tag (T)
 // rxAr_by_An_in_cl_An should be interpreted as "The time when packet was received from the Reference
 // Anchor by Anchor N expressed in the clock of Anchor N"
-
 static bool calcClockCorrection(double* clockCorrection, const uint8_t anchor, const rangePacket2_t* packet, const dwTime_t* arrival) {
 
   if (! isSeqNrConsecutive(history[anchor].packet.sequenceNrs[anchor], packet->sequenceNrs[anchor])) {
@@ -174,7 +150,7 @@ static bool calcDistanceDiff(float* tdoaDistDiff, const uint8_t previousAnchor, 
   const int64_t delta_txAr_to_txAn_in_cl_An = (tof_Ar_to_An_in_cl_An + truncateToAnchorTimeStamp(txAn_in_cl_An - rxAr_by_An_in_cl_An));
   const int64_t timeDiffOfArrival_in_cl_An =  truncateToAnchorTimeStamp(rxAn_by_T_in_cl_T - rxAr_by_T_in_cl_T) * clockCorrection - delta_txAr_to_txAn_in_cl_An;
 
-  *tdoaDistDiff = SPEED_OF_LIGHT * timeDiffOfArrival_in_cl_An / TS_FREQ;
+  *tdoaDistDiff = C * timeDiffOfArrival_in_cl_An / tsfreq;
 
   return true;
 }
@@ -234,24 +210,19 @@ static uint32_t tdoaTagOnEvent(dwDevice_t *dev, uwbEvent_t event)
     case eventPacketReceived:
       rxcallback(dev);
       // setRadioInReceiveMode(dev);
-      // 10ms between rangings
+      // 1ms between rangings
       return 1;
       break;
     case eventPacketSent:
-      // txcallback(dev);
+      setRadioInReceiveMode(dev);
       return 1;
       break;
     case eventTimeout:
       setRadioInReceiveMode(dev);
-      //initiateRanging(dev);
       return 1;
       break;
     case eventReceiveFailed:
-      // Try again ranging in 1ms
-      return 1;
-      break;
-    case eventRangeRequest:
-      // initiateRanging(dev);
+      setRadioInReceiveMode(dev);
       return 1;
       break;
     default:

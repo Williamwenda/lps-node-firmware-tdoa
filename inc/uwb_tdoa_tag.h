@@ -7,16 +7,6 @@
 
 #include "physical_constants.h"
 
-/* x,y,z vector */
-struct vec3_s {
-  uint32_t timestamp; // Timestamp when the data was computed
-
-  float x;
-  float y;
-  float z;
-};
-
-typedef struct vec3_s point_t;
 
 #define LOCODECK_NR_OF_TDOA_ANCHORS 8
 
@@ -29,6 +19,14 @@ typedef struct {
   bool combinedAnchorPositionOk;
 } lpsTdoaAlgoOptions_t;
 
+// anchor_j - anchor_i 
+typedef struct uwbTdoa_s {
+  uint8_t header;
+  uint8_t stamp;
+  uint8_t anchor_i;
+  uint8_t anchor_j;
+  uint32_t data;
+} uwbTdoa_t;
 
 typedef struct {
   uint8_t type;
@@ -36,7 +34,6 @@ typedef struct {
   uint32_t timestamps[LOCODECK_NR_OF_TDOA_ANCHORS];
   uint16_t distances[LOCODECK_NR_OF_TDOA_ANCHORS];
 } __attribute__((packed)) rangePacket2_t;
-
 
 // Protocol version
 #define PACKET_TYPE_TDOA 0x22
