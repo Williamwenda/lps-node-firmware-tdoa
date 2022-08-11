@@ -33,7 +33,7 @@
 #include "led.h"
 
 #include "libdw1000.h"
-#include "physical_constants.h"
+
 #include "dwOps.h"
 #include "mac.h"
 
@@ -76,6 +76,9 @@ static dwTime_t answer_tx;
 static dwTime_t answer_rx;
 static dwTime_t final_tx;
 static dwTime_t final_rx;
+
+static const double C = 299792458.0;       // Speed of light
+static const double tsfreq = 499.2e6 * 128;  // Timestamp counter frequency
 
 #define ANTENNA_OFFSET 154.6   // In meter
 #define ANTENNA_DELAY  (ANTENNA_OFFSET*499.2e6*128)/299792458.0 // In radio tick
@@ -192,8 +195,8 @@ static void rxcallback(dwDevice_t *dev) {
 
      // printf("TProp (ctn): %d\r\n", (unsigned int)tprop_ctn);
 
-      tprop = tprop_ctn/TS_FREQ;
-      distance = SPEED_OF_LIGHT * tprop;
+      tprop = tprop_ctn/tsfreq;
+      distance = C * tprop;
       uwbRange_t range;
       range.src = rxPacket.destAddress;
       range.stamp = 0x0B;
