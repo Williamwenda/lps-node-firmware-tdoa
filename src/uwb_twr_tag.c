@@ -216,7 +216,7 @@ static void rxcallback(dwDevice_t *dev) {
 
 void initiateRanging(dwDevice_t *dev)
 {
-  printf ("Interrogating anchor %d\r\n",  config.anchors[curr_anchor]);
+  // printf ("Interrogating anchor %d\r\n",  config.anchors[curr_anchor]);
   base_address[0] = config.anchors[curr_anchor];
   curr_anchor++;
   if (curr_anchor >= config.anchorListSize) {
