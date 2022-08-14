@@ -82,8 +82,8 @@ static void enqueueTDOA(uint8_t anchorA, uint8_t anchorB, float distanceDiff) {
   uwbTdoa_t tdoa;
   tdoa.stamp = 0x0B;
   tdoa.header = 0xA8;
-  tdoa.anchor_i = anchorA;
-  tdoa.anchor_j = anchorB;
+  tdoa.anchor_i = anchorA; // previous
+  tdoa.anchor_j = anchorB; // next
   memcpy(&(tdoa.data), &distanceDiff, sizeof(distanceDiff));
   unsigned char* ptr = (unsigned char*)&tdoa;
   int bytesWritten = write(1, ptr, sizeof(tdoa));
@@ -99,6 +99,10 @@ static bool isValidTimeStamp(const int64_t anchorRxTime) {
 
 static bool isSeqNrConsecutive(uint8_t prevSeqNr, uint8_t currentSeqNr) {
   return (currentSeqNr == ((prevSeqNr + 1) & 0xff));
+}
+
+static bool isConsecutiveIds(const uint8_t previousAnchor, const uint8_t currentAnchor) {
+  return (((previousAnchor + 1) & 0x07) == currentAnchor);
 }
 
 // A note on variable names. They might seem a bit verbose but express quite a lot of information
@@ -184,7 +188,10 @@ static void rxcallback(dwDevice_t *dev) {
       if (anchor != previousAnchor) {
         float tdoaDistDiff = 0.0;
         if (calcDistanceDiff(&tdoaDistDiff, previousAnchor, anchor, packet, &arrival)) {
-          enqueueTDOA(previousAnchor, anchor, tdoaDistDiff);
+          if(isConsecutiveIds(previousAnchor, anchor))
+          {
+            enqueueTDOA(previousAnchor, anchor, tdoaDistDiff);
+          }
         }
       }
 
