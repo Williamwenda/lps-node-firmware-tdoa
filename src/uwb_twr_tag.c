@@ -236,6 +236,8 @@ void initiateRanging(dwDevice_t *dev)
 
   dwWaitForResponse(dev, true);
   dwStartTransmit(dev);
+  // printf("[%d]:Hello world\n", curr_anchor++);
+  // write(1, (char*)curr_anchor++, sizeof(curr_anchor));
 }
 
 static uint32_t twrTagOnEvent(dwDevice_t *dev, uwbEvent_t event)
@@ -244,23 +246,23 @@ static uint32_t twrTagOnEvent(dwDevice_t *dev, uwbEvent_t event)
     case eventPacketReceived:
       rxcallback(dev);
       // 10ms between rangings
-      return 10;
+      return 20;
       break;
     case eventPacketSent:
       txcallback(dev);
-      return 10;
+      return 20;
       break;
     case eventTimeout:
-      // initiateRanging(dev);
-      return 10;
+      initiateRanging(dev);
+      return 20;
       break;
     case eventReceiveFailed:
       // Try again ranging in 10ms
-      return 10;
+      return 20;
       break;
     case eventRangeRequest:
-      initiateRanging(dev);
-      return 10;
+      // initiateRanging(dev);
+      return 20;
       break;
     default:
       configASSERT(false);
