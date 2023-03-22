@@ -228,66 +228,66 @@ int _write (int fd, const void *buf, size_t count)
 }
 
 static void handleMenuMain(char ch, MenuState* menuState) {
-  switch (ch) {
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-      changeAddress(ch - '0');
-      break;
-    case 'i':
-      printf("Type new node ID then enter: ");
-      fflush(stdout);
-      menuState->currentMenu = idMenu;
-      menuState->configChanged = false;
-      menuState->tempId = 0;
-      break;
-    case 'a': changeMode(MODE_ANCHOR); break;
-    case 't': changeMode(MODE_TAG); break;
-    case 's': changeMode(MODE_SNIFFER); break;
-    case 'm':
-      printModeList();
-      printf("Type 0-9 to choose new mode...\r\n");
-      menuState->currentMenu = modeMenu;
-      menuState->configChanged = false;
-      break;
-    case 'r':
-      printRadioModeList();
-      printf("Type 0-9 to choose new mode...\r\n");
-      menuState->currentMenu = radioMenu;
-      menuState->configChanged = false;
-      break;
-    case 'd': restConfig(); break;
-    case 'h':
-      help();
-      menuState->configChanged = false;
-      break;
-    case 'b':
-      cfgSetBinaryMode(true);
-      menuState->configChanged = false;
-      break;
-    case '#':
-      productionTestsRun();
-      printf("System halted, reset to continue\r\n");
-      while(true){}
-      break;
-    case 'p':
-         printPowerHelp();
-         menuState->currentMenu = powerMenu;
-         menuState->configChanged = false;
-         break;
-    case 'u':
-      bootload();
-    default:
-      menuState->configChanged = false;
-      break;
-  }
+  // switch (ch) {
+  //   case '0':
+  //   case '1':
+  //   case '2':
+  //   case '3':
+  //   case '4':
+  //   case '5':
+  //   case '6':
+  //   case '7':
+  //   case '8':
+  //   case '9':
+  //     changeAddress(ch - '0');
+  //     break;
+  //   case 'i':
+  //     printf("Type new node ID then enter: ");
+  //     fflush(stdout);
+  //     menuState->currentMenu = idMenu;
+  //     menuState->configChanged = false;
+  //     menuState->tempId = 0;
+  //     break;
+  //   case 'a': changeMode(MODE_ANCHOR); break;
+  //   case 't': changeMode(MODE_TAG); break;
+  //   case 's': changeMode(MODE_SNIFFER); break;
+  //   case 'm':
+  //     printModeList();
+  //     printf("Type 0-9 to choose new mode...\r\n");
+  //     menuState->currentMenu = modeMenu;
+  //     menuState->configChanged = false;
+  //     break;
+  //   case 'r':
+  //     printRadioModeList();
+  //     printf("Type 0-9 to choose new mode...\r\n");
+  //     menuState->currentMenu = radioMenu;
+  //     menuState->configChanged = false;
+  //     break;
+  //   case 'd': restConfig(); break;
+  //   case 'h':
+  //     help();
+  //     menuState->configChanged = false;
+  //     break;
+  //   case 'b':
+  //     cfgSetBinaryMode(true);
+  //     menuState->configChanged = false;
+  //     break;
+  //   case '#':
+  //     productionTestsRun();
+  //     printf("System halted, reset to continue\r\n");
+  //     while(true){}
+  //     break;
+  //   case 'p':
+  //        printPowerHelp();
+  //        menuState->currentMenu = powerMenu;
+  //        menuState->configChanged = false;
+  //        break;
+  //   case 'u':
+  //     bootload();
+  //   default:
+  //     menuState->configChanged = false;
+  //     break;
+  // }
 }
 
 static void handleMenuMode(char ch, MenuState* menuState) {

@@ -62,10 +62,7 @@ static int req_anchor_id = 0;
 
 #define MODE_ANCHOR 0
 #define MODE_TAG 1
-#define MODE_SNIFFER 2
-#define MODE_TDOA_ANCHOR2 3
-#define MODE_TDOA_ANCHOR3 4
-#define MODE_TDOA_TAG 5
+#define MODE_NODE 2
 
 typedef enum uwbEvent_e {
   eventTimeout,

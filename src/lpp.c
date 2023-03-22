@@ -93,11 +93,12 @@ void lppHandleShortPacket(char *data, size_t length)
       // Set new mode
       if (modeInfo->mode == LPP_SHORT_MODE_TWR) {
         cfgWriteU8(cfgMode, MODE_ANCHOR);
-      } else if (modeInfo->mode == LPP_SHORT_MODE_TDOA2) {
-        cfgWriteU8(cfgMode, MODE_TDOA_ANCHOR2);
-      } else if (modeInfo->mode == LPP_SHORT_MODE_TDOA3) {
-        cfgWriteU8(cfgMode, MODE_TDOA_ANCHOR3);
-      }
+      } 
+      // else if (modeInfo->mode == LPP_SHORT_MODE_TDOA2) {
+      //   cfgWriteU8(cfgMode, MODE_TDOA_ANCHOR2);
+      // } else if (modeInfo->mode == LPP_SHORT_MODE_TDOA3) {
+      //   cfgWriteU8(cfgMode, MODE_TDOA_ANCHOR3);
+      // }
 
       // Then resets!
       NVIC_SystemReset();

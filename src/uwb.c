@@ -39,11 +39,12 @@
 static uwbAlgorithm_t dummyAlgorithm;
 extern uwbAlgorithm_t uwbTwrAnchorAlgorithm;
 extern uwbAlgorithm_t uwbTwrTagAlgorithm;
-extern uwbAlgorithm_t uwbTdoaTagAlgorithm;
-extern uwbAlgorithm_t uwbSnifferAlgorithm;
-extern uwbAlgorithm_t uwbTdoaAlgorithm;
-extern uwbAlgorithm_t uwbTdoa2Algorithm;
-extern uwbAlgorithm_t uwbTdoa3Algorithm;
+extern uwbAlgorithm_t uwbTwrNodeAlgorithm;
+// extern uwbAlgorithm_t uwbTdoaTagAlgorithm;
+// extern uwbAlgorithm_t uwbSnifferAlgorithm;
+// extern uwbAlgorithm_t uwbTdoaAlgorithm;
+// extern uwbAlgorithm_t uwbTdoa2Algorithm;
+// extern uwbAlgorithm_t uwbTdoa3Algorithm;
 static uwbAlgorithm_t *algorithm = &dummyAlgorithm;
 
 struct {
@@ -52,10 +53,11 @@ struct {
 } availableAlgorithms[] = {
   {.algorithm = &uwbTwrAnchorAlgorithm, .name = "TWR Anchor"},
   {.algorithm = &uwbTwrTagAlgorithm,    .name = "TWR Tag"},
-  {.algorithm = &uwbSnifferAlgorithm,   .name = "Sniffer"},
-  {.algorithm = &uwbTdoa2Algorithm,     .name = "TDoA Anchor V2"},
-  {.algorithm = &uwbTdoa3Algorithm,     .name = "TDoA Anchor V3"},
-  {.algorithm = &uwbTdoaTagAlgorithm,   .name = "TDoA Tag V2"},
+  {.algorithm = &uwbTwrNodeAlgorithm,    .name = "TWR Node"},
+  // {.algorithm = &uwbSnifferAlgorithm,   .name = "Sniffer"},
+  // {.algorithm = &uwbTdoa2Algorithm,     .name = "TDoA Anchor V2"},
+  // {.algorithm = &uwbTdoa3Algorithm,     .name = "TDoA Anchor V3"},
+  // {.algorithm = &uwbTdoaTagAlgorithm,   .name = "TDoA Tag V2"},
   {NULL, NULL},
 };
 
@@ -110,10 +112,11 @@ void uwbInit()
   dwSetAntenaDelay(dwm, delay);
 
   // Reading and setting node configuration
-  cfgReadU8(cfgAddress, &config.address[0]);
+  // cfgReadU8(cfgAddress, &config.address[0]);
+  config.address[0] = 5;
   // cfgReadU8(cfgMode, &config.mode);
-  config.mode = MODE_TAG;
-  config.anchorListSize = 8;
+  config.mode = MODE_NODE;
+  config.anchorListSize = 6;
   for(uint8_t i = 0; i < config.anchorListSize; i++)
   {
     config.anchors[i] = i;
@@ -130,7 +133,7 @@ void uwbInit()
     algorithm = &dummyAlgorithm;
   }
 
-  config.positionEnabled = cfgReadFP32list(cfgAnchorPos, config.position, 3);
+  config.positionEnabled = false;//cfgReadFP32list(cfgAnchorPos, config.position, 3);
 
   dwAttachSentHandler(dwm, txcallback);
   dwAttachReceivedHandler(dwm, rxcallback);
