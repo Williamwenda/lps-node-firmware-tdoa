@@ -58,8 +58,6 @@ typedef struct uwbRange_s {
   uint32_t data;
 } uwbRange_t;
 
-static int req_anchor_id = 0;
-
 #define MODE_ANCHOR 0
 #define MODE_TAG 1
 #define MODE_SNIFFER 2
@@ -76,6 +74,7 @@ typedef enum uwbEvent_e {
   eventRangeRequest,
 } uwbEvent_t;
 
+extern uint8_t req_anchor_id;
 // Callback for one uwb algorithm
 typedef struct uwbAlgorithm_s {
   void (*init)(uwbConfig_t * config, dwDevice_t *dev);
@@ -89,7 +88,7 @@ typedef struct uwbAlgorithm_s {
 void uwbInit();
 bool uwbTest();
 void uwbStart();
-void reqRange();
+void reqRange(char anc_id);
 char * uwbStrError();
 struct uwbConfig_s * uwbGetConfig();
 int uwbAlgorithmCount();

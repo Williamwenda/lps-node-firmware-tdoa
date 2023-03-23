@@ -216,12 +216,11 @@ static void rxcallback(dwDevice_t *dev) {
 
 void initiateRanging(dwDevice_t *dev)
 {
-  // printf ("Interrogating anchor %d\r\n",  config.anchors[curr_anchor]);
-  base_address[0] = config.anchors[curr_anchor];
-  curr_anchor++;
-  if (curr_anchor >= config.anchorListSize) {
-    curr_anchor = 0;
-  }
+  base_address[0] = req_anchor_id;
+  // curr_anchor++;
+  // if (curr_anchor >= config.anchorListSize) {
+  //   curr_anchor = 0;
+  // }
   dwIdle(dev);
 
   txPacket.payload[TYPE] = POLL;
@@ -229,6 +228,8 @@ void initiateRanging(dwDevice_t *dev)
 
   memcpy(txPacket.sourceAddress, config.address, 8);
   memcpy(txPacket.destAddress, base_address, 8);
+  
+  // printf ("Interrogating anchor in initiate %x\r\n", req_anchor_id);
 
   dwNewTransmit(dev);
   dwSetDefaults(dev);

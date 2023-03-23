@@ -58,7 +58,7 @@ const uint8_t *uid = (uint8_t*)MCU_ID_ADDRESS;
 static void restConfig();
 static void changeAddress(uint8_t addr);
 static void handleSerialInput(char ch);
-static void handleRangeRequest(char ch);
+static void handleRangeRequest(char* ch);
 static void handleButton(void);
 static void changeMode(unsigned int newMode);
 static void changeRadioMode(unsigned int newMode);
@@ -81,6 +81,7 @@ typedef struct {
 static void main_task(void *pvParameters) {
   int i;
   char ch;
+  char data_buf[3];
   bool selftestPasses = true;
 
   /* Initialize all configured peripherals */
@@ -142,28 +143,28 @@ static void main_task(void *pvParameters) {
   }
 
   // Printing UWB configuration
-  struct uwbConfig_s * uwbConfig = uwbGetConfig();
-  printf("CONFIG\t: Address is 0x%X\r\n", uwbConfig->address[0]);
-  printf("CONFIG\t: Mode is %s\r\n", uwbAlgorithmName(uwbConfig->mode));
-  printf("CONFIG\t: Tag mode anchor list (%i): ", uwbConfig->anchorListSize);
-  for (i = 0; i < uwbConfig->anchorListSize; i++) {
-    printf("0x%02X ", uwbConfig->anchors[i]);
-  }
-  printf("\r\n");
-  printf("CONFIG\t: Anchor position enabled: %s\r\n",
-         uwbConfig->positionEnabled?"true":"false");
-  if (uwbConfig->positionEnabled) {
-    printf("CONFIG\t: Anchor position: %f %f %f\r\n", uwbConfig->position[0],
-                                                      uwbConfig->position[1],
-                                                      uwbConfig->position[2]);
-  }
-  printf("CONFIG\t: SmartPower enabled: %s\r\n", uwbConfig->smartPower?"True":"False");
-  printf("CONFIG\t: Force TX power: %s\r\n", uwbConfig->forceTxPower?"True":"False");
-  if(uwbConfig->forceTxPower) {
-    printf("CONFIG\t: TX power setting: %08X\r\n", (unsigned int)uwbConfig->txPower);
-  }
-  printf("CONFIG\t: Bitrate: %s\r\n", uwbConfig->lowBitrate?"low":"normal");
-  printf("CONFIG\t: Preamble: %s\r\n", uwbConfig->longPreamble?"long":"normal");
+  // struct uwbConfig_s * uwbConfig = uwbGetConfig();
+  // printf("CONFIG\t: Address is 0x%X\r\n", uwbConfig->address[0]);
+  // printf("CONFIG\t: Mode is %s\r\n", uwbAlgorithmName(uwbConfig->mode));
+  // printf("CONFIG\t: Tag mode anchor list (%i): ", uwbConfig->anchorListSize);
+  // for (i = 0; i < uwbConfig->anchorListSize; i++) {
+  //   printf("0x%02X ", uwbConfig->anchors[i]);
+  // }
+  // printf("\r\n");
+  // printf("CONFIG\t: Anchor position enabled: %s\r\n",
+  //        uwbConfig->positionEnabled?"true":"false");
+  // if (uwbConfig->positionEnabled) {
+  //   printf("CONFIG\t: Anchor position: %f %f %f\r\n", uwbConfig->position[0],
+  //                                                     uwbConfig->position[1],
+  //                                                     uwbConfig->position[2]);
+  // }
+  // printf("CONFIG\t: SmartPower enabled: %s\r\n", uwbConfig->smartPower?"True":"False");
+  // printf("CONFIG\t: Force TX power: %s\r\n", uwbConfig->forceTxPower?"True":"False");
+  // if(uwbConfig->forceTxPower) {
+  //   printf("CONFIG\t: TX power setting: %08X\r\n", (unsigned int)uwbConfig->txPower);
+  // }
+  // printf("CONFIG\t: Bitrate: %s\r\n", uwbConfig->lowBitrate?"low":"normal");
+  // printf("CONFIG\t: Preamble: %s\r\n", uwbConfig->longPreamble?"long":"normal");
 
   HAL_Delay(500);
 
@@ -171,8 +172,8 @@ static void main_task(void *pvParameters) {
   ledOff(ledSync);
   ledOff(ledMode);
 
-  printf("SYSTEM\t: Node started ...\r\n");
-  printf("SYSTEM\t: Press 'h' for help.\r\n");
+  // printf("SYSTEM\t: Node started ...\r\n");
+  // printf("SYSTEM\t: Press 'h' for help.\r\n");
 
   usbcommSetSystemStarted(true);
 
@@ -199,10 +200,10 @@ static void main_task(void *pvParameters) {
 #ifdef USE_FTDI_UART
     if (HAL_UART_Receive(&huart1, (uint8_t*)&ch, 1, 0) == HAL_OK) {
 #else
-    if(usbcommRead(&ch, 1)) {
+    if(usbcommRead(&data_buf, 3)) {
 #endif
       // handleSerialInput(ch);
-      handleRangeRequest(ch);
+      handleRangeRequest(data_buf);
     }
   }
 }
@@ -399,12 +400,15 @@ static void handleMenuPower(char ch, MenuState* menuState) {
   }
 }
 
-static void handleRangeRequest(char ch)
+static void handleRangeRequest(char* data_buf)
 {
   // req_anchor_id;
-  // printf("%c\n",ch);
-  if(ch == 'z')
-    reqRange();
+  if(data_buf[0] == 0x3c &&
+     data_buf[1] == 0x3c)
+    {
+      reqRange(data_buf[2]);
+    }
+
 }
 
 static void handleSerialInput(char ch) {

@@ -65,6 +65,7 @@ static int uwbErrorCode = 0;
 static SemaphoreHandle_t irqSemaphore;
 static dwDevice_t dwm_device;
 static dwDevice_t *dwm = &dwm_device;
+uint8_t req_anchor_id = 0;
 
 // System configuration
 static struct uwbConfig_s config = {
@@ -236,8 +237,9 @@ static void uwbTask(void* parameters)
   }
 }
 
-void reqRange()
+void reqRange(char anc_id)
 {
+  req_anchor_id = anc_id;
   timeout = algorithm->onEvent(dwm, eventRangeRequest);
 }
 
