@@ -64,6 +64,7 @@ struct {
 // Low level radio handling context (to be separated)
 static bool isInit = false;
 static int uwbErrorCode = 0;
+uint8_t req_node_id = 0;
 static SemaphoreHandle_t irqSemaphore;
 static dwDevice_t dwm_device;
 static dwDevice_t *dwm = &dwm_device;
@@ -113,10 +114,11 @@ void uwbInit()
 
   // Reading and setting node configuration
   // cfgReadU8(cfgAddress, &config.address[0]);
-  config.address[0] = 5;
   // cfgReadU8(cfgMode, &config.mode);
+
   config.mode = MODE_NODE;
-  config.anchorListSize = 6;
+  config.address[0] = NODE_ID;
+  config.anchorListSize = 8;
   for(uint8_t i = 0; i < config.anchorListSize; i++)
   {
     config.anchors[i] = i;
@@ -239,8 +241,12 @@ static void uwbTask(void* parameters)
   }
 }
 
-void reqRange()
+void reqRange(char anc_id)
 {
+  // Not for me
+  if(anc_id == NODE_ID)
+    return;
+  req_node_id = anc_id;
   timeout = algorithm->onEvent(dwm, eventRangeRequest);
 }
 

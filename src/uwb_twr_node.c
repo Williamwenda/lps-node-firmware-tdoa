@@ -307,21 +307,12 @@ static void rxcallback(dwDevice_t *dev) {
 
 void requestRange(dwDevice_t *dev)
 {
-
-  curr_anchor++;
-
-  if(curr_anchor == config.address)
-    curr_anchor++;
-
-  if (curr_anchor >= config.anchorListSize) {
-    curr_anchor = 0;
-  }
   dwIdle(dev);
 
   txPacket.payload[TYPE] = POLL;
   txPacket.payload[SEQ] = ++curr_seq;
 
-  base_address[0] = config.anchors[curr_anchor];
+  base_address[0] = req_node_id;
   memcpy(txPacket.sourceAddress, config.address, 8);
   memcpy(txPacket.destAddress, base_address, 8);
   debug("Interrogating anchor %d\r\n src:%d\r\n", txPacket.destAddress[0],
@@ -346,7 +337,6 @@ static uint32_t twrNodeOnEvent(dwDevice_t *dev, uwbEvent_t event)
       txcallback(dev);
       break;
     case eventTimeout:
-      break;
     case eventReceiveFailed:
       dwNewReceive(dev);
       dwSetDefaults(dev);
@@ -372,8 +362,6 @@ static void twrNodeInit(uwbConfig_t * newconfig, dwDevice_t *dev)
   // Initialize the packet in the TX buffer
   MAC80215_PACKET_INIT(txPacket, MAC802154_TYPE_DATA);
   txPacket.pan = 0xbccf;
-
-  // onEvent is going to be called with eventTimeout which will start ranging
 }
 
 uwbAlgorithm_t uwbTwrNodeAlgorithm = {

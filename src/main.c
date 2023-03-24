@@ -58,7 +58,7 @@ const uint8_t *uid = (uint8_t*)MCU_ID_ADDRESS;
 static void restConfig();
 static void changeAddress(uint8_t addr);
 static void handleSerialInput(char ch);
-static void handleRangeRequest(char ch);
+static void handleRangeRequest(char* ch);
 static void handleButton(void);
 static void changeMode(unsigned int newMode);
 static void changeRadioMode(unsigned int newMode);
@@ -81,6 +81,7 @@ typedef struct {
 static void main_task(void *pvParameters) {
   int i;
   char ch;
+  char data_buf[3];
   bool selftestPasses = true;
 
   /* Initialize all configured peripherals */
@@ -142,28 +143,28 @@ static void main_task(void *pvParameters) {
   }
 
   // Printing UWB configuration
-  struct uwbConfig_s * uwbConfig = uwbGetConfig();
-  printf("CONFIG\t: Address is 0x%X\r\n", uwbConfig->address[0]);
-  printf("CONFIG\t: Mode is %s\r\n", uwbAlgorithmName(uwbConfig->mode));
-  printf("CONFIG\t: Tag mode anchor list (%i): ", uwbConfig->anchorListSize);
-  for (i = 0; i < uwbConfig->anchorListSize; i++) {
-    printf("0x%02X ", uwbConfig->anchors[i]);
-  }
-  printf("\r\n");
-  printf("CONFIG\t: Anchor position enabled: %s\r\n",
-         uwbConfig->positionEnabled?"true":"false");
-  if (uwbConfig->positionEnabled) {
-    printf("CONFIG\t: Anchor position: %f %f %f\r\n", uwbConfig->position[0],
-                                                      uwbConfig->position[1],
-                                                      uwbConfig->position[2]);
-  }
-  printf("CONFIG\t: SmartPower enabled: %s\r\n", uwbConfig->smartPower?"True":"False");
-  printf("CONFIG\t: Force TX power: %s\r\n", uwbConfig->forceTxPower?"True":"False");
-  if(uwbConfig->forceTxPower) {
-    printf("CONFIG\t: TX power setting: %08X\r\n", (unsigned int)uwbConfig->txPower);
-  }
-  printf("CONFIG\t: Bitrate: %s\r\n", uwbConfig->lowBitrate?"low":"normal");
-  printf("CONFIG\t: Preamble: %s\r\n", uwbConfig->longPreamble?"long":"normal");
+  // struct uwbConfig_s * uwbConfig = uwbGetConfig();
+  // printf("CONFIG\t: Address is 0x%X\r\n", uwbConfig->address[0]);
+  // printf("CONFIG\t: Mode is %s\r\n", uwbAlgorithmName(uwbConfig->mode));
+  // printf("CONFIG\t: Tag mode anchor list (%i): ", uwbConfig->anchorListSize);
+  // for (i = 0; i < uwbConfig->anchorListSize; i++) {
+  //   printf("0x%02X ", uwbConfig->anchors[i]);
+  // }
+  // printf("\r\n");
+  // printf("CONFIG\t: Anchor position enabled: %s\r\n",
+  //        uwbConfig->positionEnabled?"true":"false");
+  // if (uwbConfig->positionEnabled) {
+  //   printf("CONFIG\t: Anchor position: %f %f %f\r\n", uwbConfig->position[0],
+  //                                                     uwbConfig->position[1],
+  //                                                     uwbConfig->position[2]);
+  // }
+  // printf("CONFIG\t: SmartPower enabled: %s\r\n", uwbConfig->smartPower?"True":"False");
+  // printf("CONFIG\t: Force TX power: %s\r\n", uwbConfig->forceTxPower?"True":"False");
+  // if(uwbConfig->forceTxPower) {
+  //   printf("CONFIG\t: TX power setting: %08X\r\n", (unsigned int)uwbConfig->txPower);
+  // }
+  // printf("CONFIG\t: Bitrate: %s\r\n", uwbConfig->lowBitrate?"low":"normal");
+  // printf("CONFIG\t: Preamble: %s\r\n", uwbConfig->longPreamble?"long":"normal");
 
   HAL_Delay(500);
 
@@ -171,8 +172,8 @@ static void main_task(void *pvParameters) {
   ledOff(ledSync);
   ledOff(ledMode);
 
-  printf("SYSTEM\t: Node started ...\r\n");
-  printf("SYSTEM\t: Press 'h' for help.\r\n");
+  // printf("SYSTEM\t: Node started ...\r\n");
+  // printf("SYSTEM\t: Press 'h' for help.\r\n");
 
   usbcommSetSystemStarted(true);
 
@@ -199,10 +200,10 @@ static void main_task(void *pvParameters) {
 #ifdef USE_FTDI_UART
     if (HAL_UART_Receive(&huart1, (uint8_t*)&ch, 1, 0) == HAL_OK) {
 #else
-    if(usbcommRead(&ch, 1)) {
+    if(usbcommRead(&data_buf, 3)) {
 #endif
       // handleSerialInput(ch);
-      handleRangeRequest(ch);
+      handleRangeRequest(data_buf);
     }
   }
 }
@@ -227,216 +228,15 @@ int _write (int fd, const void *buf, size_t count)
   return count;
 }
 
-static void handleMenuMain(char ch, MenuState* menuState) {
-  // switch (ch) {
-  //   case '0':
-  //   case '1':
-  //   case '2':
-  //   case '3':
-  //   case '4':
-  //   case '5':
-  //   case '6':
-  //   case '7':
-  //   case '8':
-  //   case '9':
-  //     changeAddress(ch - '0');
-  //     break;
-  //   case 'i':
-  //     printf("Type new node ID then enter: ");
-  //     fflush(stdout);
-  //     menuState->currentMenu = idMenu;
-  //     menuState->configChanged = false;
-  //     menuState->tempId = 0;
-  //     break;
-  //   case 'a': changeMode(MODE_ANCHOR); break;
-  //   case 't': changeMode(MODE_TAG); break;
-  //   case 's': changeMode(MODE_SNIFFER); break;
-  //   case 'm':
-  //     printModeList();
-  //     printf("Type 0-9 to choose new mode...\r\n");
-  //     menuState->currentMenu = modeMenu;
-  //     menuState->configChanged = false;
-  //     break;
-  //   case 'r':
-  //     printRadioModeList();
-  //     printf("Type 0-9 to choose new mode...\r\n");
-  //     menuState->currentMenu = radioMenu;
-  //     menuState->configChanged = false;
-  //     break;
-  //   case 'd': restConfig(); break;
-  //   case 'h':
-  //     help();
-  //     menuState->configChanged = false;
-  //     break;
-  //   case 'b':
-  //     cfgSetBinaryMode(true);
-  //     menuState->configChanged = false;
-  //     break;
-  //   case '#':
-  //     productionTestsRun();
-  //     printf("System halted, reset to continue\r\n");
-  //     while(true){}
-  //     break;
-  //   case 'p':
-  //        printPowerHelp();
-  //        menuState->currentMenu = powerMenu;
-  //        menuState->configChanged = false;
-  //        break;
-  //   case 'u':
-  //     bootload();
-  //   default:
-  //     menuState->configChanged = false;
-  //     break;
-  // }
-}
-
-static void handleMenuMode(char ch, MenuState* menuState) {
-  switch(ch) {
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-      changeMode(ch - '0');
-      menuState->currentMenu = mainMenu;
-      break;
-    default:
-      printf("Incorrect mode '%c'\r\n", ch);
-      menuState->currentMenu = mainMenu;
-      menuState->configChanged = false;
-      break;
-  }
-}
-
-static void handleMenuRadio(char ch, MenuState* menuState) {
-  switch(ch) {
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-      changeRadioMode(ch - '0');
-      menuState->currentMenu = mainMenu;
-      break;
-    default:
-      printf("Incorrect mode '%c'\r\n", ch);
-      menuState->currentMenu = mainMenu;
-      menuState->configChanged = false;
-      break;
-  }
-}
-
-static void handleMenuId(char ch, MenuState* menuState) {
-  switch(ch) {
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-      menuState->tempId *= 10;
-      menuState->tempId += ch - '0';
-      putchar(ch);
-      fflush(stdout);
-      menuState->configChanged = false;
-      break;
-    case '\n':
-    case '\r':
-      printf("\r\n");
-      fflush(stdout);
-      if (menuState->tempId < 256) {
-        printf("Setting node ID to %d\r\n", menuState->tempId);
-        changeAddress(menuState->tempId);
-      } else {
-        printf("Wrong ID '%d', the ID should be between 0 and 255\r\n", menuState->tempId);
-        menuState->configChanged = false;
-      }
-      menuState->currentMenu = mainMenu;
-      break;
-    default:
-      menuState->configChanged = false;
-      break;
-  }
-}
-
-static void handleMenuPower(char ch, MenuState* menuState) {
-  switch(ch) {
-    case 'f':
-      printf("Setting ForceTxPower\r\n");
-      cfgWriteU8(cfgSmartPower, 0);
-      cfgWriteU8(cfgForceTxPower, 1);
-      break;
-    case 's':
-      printf("Setting SmartPower\r\n");
-      cfgWriteU8(cfgSmartPower, 1);
-      cfgWriteU8(cfgForceTxPower, 0);
-      break;
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-      //support 10 power levels
-      changePower(ch - '0');
-      break;
-    default:
-      menuState->currentMenu = mainMenu;
-      menuState->configChanged = false;
-      break;
-  }
-}
-
-static void handleRangeRequest(char ch)
+static void handleRangeRequest(char* data_buf)
 {
   // req_anchor_id;
-  // printf("%c\n",ch);
-  if(ch == 'z')
-    reqRange();
-}
+  if(data_buf[0] == 0x3c &&
+     data_buf[1] == 0x3c)
+    {
+      reqRange(data_buf[2]);
+    }
 
-static void handleSerialInput(char ch) {
-  static MenuState menuState = {
-    .configChanged = true,
-    .currentMenu = mainMenu,
-    .tempId = 0,
-  };
-
-  menuState.configChanged = true;
-
-  switch (menuState.currentMenu) {
-    case mainMenu:
-      handleMenuMain(ch, &menuState);
-      break;
-    case modeMenu:
-      handleMenuMode(ch, &menuState);
-      break;
-    case radioMenu:
-      handleMenuRadio(ch, &menuState);
-      break;
-    case idMenu:
-      handleMenuId(ch, &menuState);
-      break;
-    case powerMenu:
-      handleMenuPower(ch, &menuState);
-      break;
-  }
-
-  if (menuState.configChanged) {
-    printf("EEPROM configuration changed, restart for it to take effect!\r\n");
-  }
 }
 
 static void handleButton(void) {
@@ -531,90 +331,6 @@ static void printModeList()
   }
 }
 
-static void printMode() {
-  uint8_t mode;
-
-  if (cfgReadU8(cfgMode, &mode)) {
-    printf(uwbAlgorithmName(mode));
-  } else {
-    printf("Not found!");
-  }
-
-  printf("\r\n");
-}
-
-static void changeRadioMode(unsigned int newMode) {
-    printf("Previous radio mode: ");
-    printRadioMode();
-
-    uint8_t lowBitrate = newMode & 1;
-    uint8_t longPreamble = (newMode & 2) / 2;
-
-    cfgWriteU8(cfgLowBitrate, lowBitrate);
-    cfgWriteU8(cfgLongPreamble, longPreamble);
-
-    printf("New radio mode: ");
-    printRadioMode();
-}
-
-static void printRadioMode() {
-  uint8_t lowBitrate;
-  uint8_t longPreamble;
-
-  cfgReadU8(cfgLowBitrate, &lowBitrate);
-  cfgReadU8(cfgLongPreamble, &longPreamble);
-
-  printf("%s bitrate, %s preamble", lowBitrate?"low":"normal", longPreamble?"long":"normal");
-  printf("\r\n");
-}
-
-static void printRadioModeList()
-{
-  uint8_t lowBitrate;
-  uint8_t longPreamble;
-
-  cfgReadU8(cfgLowBitrate, &lowBitrate);
-  cfgReadU8(cfgLongPreamble, &longPreamble);
-
-  printf("-------------------\r\n");
-  printf("NOTE: only change if you use TDoA3. Other modes will stop working if changed from the default mode.\r\n");
-  printf("\r\n");
-  printf("Current mode is "); printRadioMode();
-  printf("\r\n");
-  printf("Available radio modes:\r\n");
-  printf("0: normal bitrate, normal preamble (default)\r\n");
-  printf("1: low bitrate, normal preamble\r\n");
-  printf("2: normal bitrate, long preamble\r\n");
-  printf("3: low bitrate, long preamble\r\n");
-}
-
-
-
-static void printPowerHelp() {
-  printf("Power menu\r\n");
-  printf("-------------------\r\n");
-  printf("0-9 - to set ForceTxPower power (from 3.5dB to 33.5dB)\r\n");
-  printf("f   - for ForceTxPower\r\n");
-  printf("s   - for SmartPower\r\n");
-}
-
-static void help() {
-  printf("Help\r\n");
-  printf("-------------------\r\n");
-  printf("0-9 - set address (node ID)\r\n");
-  printf("i   - set node ID from 0 to 255\r\n");
-  printf("a   - anchor mode\r\n");
-  printf("t   - tag mode\r\n");
-  printf("s   - sniffer mode\r\n");
-  printf("m   - List and change mode\r\n");
-  printf("r   - List and change UWB radio settings\r\n");
-  printf("p   - change power mode\r\n");
-  printf("d   - reset configuration\r\n");
-  printf("u   - enter BSL (DFU mode)\r\n");
-  printf("h   - This help\r\n");
-  printf("---- For machine only\r\n");
-  printf("b   - Switch to binary mode (sniffer only)\r\n");
-}
 
 static StaticTask_t xMainTask;
 static StackType_t ucMainStack[configMINIMAL_STACK_SIZE];
