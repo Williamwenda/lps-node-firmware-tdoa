@@ -97,7 +97,7 @@ static void main_task(void *pvParameters) {
   ledOn(ledMode);
   buttonInit(buttonIdle);
 
-  // printf("\r\n\r\n====================\r\n");
+  printf("\r\n\r\n====================\r\n");
 
   // printf("SYSTEM\t: CPU-ID: ");
   // for (i=0; i<12; i++) {
@@ -182,7 +182,7 @@ static void main_task(void *pvParameters) {
 
   // Main loop ...
   while(1) {
-    // usbcommPrintWelcomeMessage();
+    // usbcommPrintWelcomeMessage();      // uncomment this to print the welcome msg
 
     ledTick();
     // handleButton();
@@ -197,11 +197,11 @@ static void main_task(void *pvParameters) {
     // }
 
     // Accepts serial commands
-#ifdef USE_FTDI_UART
-    if (HAL_UART_Receive(&huart1, (uint8_t*)&ch, 1, 0) == HAL_OK) {
-#else
-    if(usbcommRead(&data_buf, 3)) {
-#endif
+    #ifdef USE_FTDI_UART
+        if (HAL_UART_Receive(&huart1, (uint8_t*)&ch, 1, 0) == HAL_OK) {
+    #else
+        if(usbcommRead(&data_buf, 3)) {
+    #endif
       // handleSerialInput(ch);
       handleRangeRequest(data_buf);
     }
@@ -592,8 +592,6 @@ static void printRadioModeList()
   printf("3: low bitrate, long preamble\r\n");
 }
 
-
-
 static void printPowerHelp() {
   printf("Power menu\r\n");
   printf("-------------------\r\n");
@@ -631,7 +629,7 @@ int main() {
   SystemClock_Config();
 
   // Setup main task
-  xTaskCreateStatic( main_task, "main", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, ucMainStack, &xMainTask );
+  xTaskCreateStatic(main_task, "main", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, ucMainStack, &xMainTask);
 
   // Start the FreeRTOS scheduler
   vTaskStartScheduler();

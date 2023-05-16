@@ -241,6 +241,7 @@ void initiateRanging(dwDevice_t *dev)
 
 static uint32_t twrTagOnEvent(dwDevice_t *dev, uwbEvent_t event)
 {
+  // printf("twr tag algorithm\r\n");   // NOTE: only used for debug, need to be commented out in use
   switch(event) {
     case eventPacketReceived:
       rxcallback(dev);
@@ -274,7 +275,6 @@ static void twrTagInit(uwbConfig_t * newconfig, dwDevice_t *dev)
 {
   // Set the LED for tag mode
   ledOn(ledMode);
-
   config = *newconfig;
 
   // Initialize the packet in the TX buffer

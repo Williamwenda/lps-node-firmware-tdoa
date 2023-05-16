@@ -8,3 +8,5 @@
 
 # jykell files generated
 docs/.jekyll-metadata
+
+.vscode/

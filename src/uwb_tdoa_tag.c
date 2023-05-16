@@ -1,26 +1,19 @@
 /*
  */
 /* uwb_tdoa_tag.c: Uwb time difference of arrival implementation */
-
 #include "uwb.h"
-
 #include <string.h>
 #include <stdio.h>
-
 #include "cfg.h"
 #include "led.h"
-
 #include "uwb_tdoa_tag.h"
-
 #include "libdw1000.h"
-
-static const double C = 299792458.0;       // Speed of light
-static const double tsfreq = 499.2e6 * 128;  // Timestamp counter frequency
-
 #include "dwOps.h"
 #include "mac.h"
 
 #define ANCHOR_OK_TIMEOUT 1500
+static const double C = 299792458.0;       // Speed of light
+static const double tsfreq = 499.2e6 * 128;  // Timestamp counter frequency
 
 
 static lpsTdoaAlgoOptions_t defaultOptions = {
@@ -65,10 +58,8 @@ typedef struct tdoaMeasurement_s {
   float stdDev;
 } tdoaMeasurement_t;
 
-
 // #define printf(...)
 #define debug(...) // printf(__VA_ARGS__)
-
 
 static uint64_t truncateToLocalTimeStamp(uint64_t fullTimeStamp) {
   return fullTimeStamp & 0x00FFFFFFFFul;
@@ -84,7 +75,9 @@ static void enqueueTDOA(uint8_t anchorA, uint8_t anchorB, float distanceDiff) {
   tdoa.header = 0xA8;
   tdoa.anchor_i = anchorA; // previous
   tdoa.anchor_j = anchorB; // next
+
   memcpy(&(tdoa.data), &distanceDiff, sizeof(distanceDiff));
+
   unsigned char* ptr = (unsigned char*)&tdoa;
   int bytesWritten = write(1, ptr, sizeof(tdoa));
   // printf("[%d]<->[%d]:[%f].\n", anchorA, anchorB, distanceDiff);
@@ -159,13 +152,12 @@ static bool calcDistanceDiff(float* tdoaDistDiff, const uint8_t previousAnchor, 
   return true;
 }
 
-
 static void txcallback(dwDevice_t *dev)
 {
 }
 
-
 static void rxcallback(dwDevice_t *dev) {  
+  //
   int dataLength = dwGetDataLength(dev);
   //
   packet_t rxPacket;
@@ -213,10 +205,11 @@ static void setRadioInReceiveMode(dwDevice_t *dev) {
 
 static uint32_t tdoaTagOnEvent(dwDevice_t *dev, uwbEvent_t event)
 {
+  // printf("TODA tag algorithm\r\n");   // NOTE: only used for debug, need to be commented out in use
   switch(event) {
     case eventPacketReceived:
       rxcallback(dev);
-      // setRadioInReceiveMode(dev);
+      setRadioInReceiveMode(dev);
       // 1ms between rangings
       return 1;
       break;

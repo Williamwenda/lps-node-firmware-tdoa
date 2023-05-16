@@ -99,7 +99,7 @@ void uwbInit()
   static StaticSemaphore_t irqSemaphoreBuffer;
   irqSemaphore = xSemaphoreCreateBinaryStatic(&irqSemaphoreBuffer);
 
-  dwInit(dwm, &dwOps);       // Init libdw
+  dwInit(dwm, &dwOps);             // Init libdw
   dwOpsInit(dwm);
   uwbErrorCode = dwConfigure(dwm); // Configure the dw1000 chip
   if (uwbErrorCode == 0) {
@@ -113,7 +113,7 @@ void uwbInit()
   // Reading and setting node configuration
   cfgReadU8(cfgAddress, &config.address[0]);
   // cfgReadU8(cfgMode, &config.mode);
-  config.mode = MODE_TAG;
+  config.mode = MODE_TDOA_TAG;             // [NOTE]: here is the place to set which algorithm to use on the radio
   config.anchorListSize = 8;
   for(uint8_t i = 0; i < config.anchorListSize; i++)
   {
